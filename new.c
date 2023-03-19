@@ -29,8 +29,9 @@ void *wrtfunc(void *arg){
         
         
         wflag = 0;
-        i++;
+        
         sem_post(&wrt);
+        i++;
 
     }
     printf("counter = %d increased by writer\n", SC);
@@ -44,10 +45,10 @@ void *wrtfunc(void *arg){
 void *rdfunc(void *arg){
     int j=0;
     int x = *((int *) arg);
-
-    while(j<250000){
             
-
+if(wflag == 1){
+            printf("Error, writer in critical section");
+        }
         sem_wait(&rd);
 
         rcount++;
@@ -58,27 +59,16 @@ void *rdfunc(void *arg){
         }
         sem_post(&rd);
 
-        sem_wait(&rd);
-        if(wflag == 1){
-            printf("Error, writer in critical section");
-        }
-        sem_post(&rd);
-        
-        SC=SC;  //relax and spendtime
-        
+        relaxandspendtime();
 
         sem_wait(&rd);
-
         rcount--;
         if(rcount == 0)
         {
             sem_post(&wrt);
         }
 
-        j++;
         sem_post(&rd);
-
-    }
 
     printf("Reader %d Done reading\n", x+1);
 
@@ -150,3 +140,9 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
+
+
+
+
+
+
