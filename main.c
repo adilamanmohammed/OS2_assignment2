@@ -122,14 +122,18 @@ int main(int argc,char* argv[])
         temp[i] = i;
         pthread_create(&readers[i], NULL,reader_thread,  (void *) &temp[i]);
     }
+    for(i = 0; i < k; i++){
+        pthread_join(readers[i], NULL);
+    }
     pthread_create(&writer[0], NULL, writer_thread, NULL);
+    pthread_join(writer[0],NULL);
     for(i = k ; i < n ; i++) {
        temp[i] = i;
     pthread_create(&readers[i],NULL,reader_thread, &temp[i] );
     }
     
     //waiting for all the thread to finish
-    for(i = 0; i < n; i++){
+    for(i = k; i < n; i++){
         pthread_join(readers[i], NULL);
     }
     pthread_join(writer[0],NULL);
