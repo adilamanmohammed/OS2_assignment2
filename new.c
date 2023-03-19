@@ -83,50 +83,52 @@ void *rdfunc(void *arg){
 }
 
 
-int main(int agrc, char* argv[]){
+int main(int argc, char* argv[])
+{
     int n;
     n = atoi(argv[1]);
-    if(n >= 1 && n <= 14){
-        pthread_t reader[n], writer;
-        sem_init(&wrt, 0, 1);
-        sem_init(&rd, 0, 1);
-        int k,i;
-        k = (int)(n/2);
-        for(i = 0; i < k; i++)
+    if(argc==2)
+    {
+        if(n >= 1 && n <= 14)
         {
-            int *x = malloc(sizeof(int));
-            *x = i;
-            pthread_create(&reader[i], NULL , rdfunc, x);
+                    pthread_t reader[n], writer;
+                    sem_init(&wrt, 0, 1);
+                    sem_init(&rd, 0, 1);
+                    int k,i;
+                    k = (int)(n/2);
+                    for(i = 0; i < k; i++)
+                        {
+                            int *x = malloc(sizeof(int));
+                            *x = i;
+                            pthread_create(&reader[i], NULL , rdfunc, x);
+                        }
+                    /* Create the writer thread */
+                    pthread_create(&writer, NULL , wrtfunc, NULL);
+                    for(i = k ; i < n ; i++)
+                        {
+                            int *x = malloc(sizeof(int));
+                            *x = i;
+                            pthread_create(&reader[i], NULL , rdfunc, x);
+                        } 
+
+                    for(i=0;i<n;i++)
+                        {
+                            pthread_join(reader[i], NULL);
+                        }
+                        pthread_join(writer, NULL);
+
+                        sem_destroy(&wrt);
+                        sem_destroy(&rd);
         }
-        /* Create the writer thread */
-        pthread_create(&writer, NULL , wrtfunc, NULL);
-        for(i = k ; i < n ; i++)
+        else
         {
-            int *x = malloc(sizeof(int));
-            *x = i;
-            pthread_create(&reader[i], NULL , rdfunc, x);
-        } 
-
-        for(i=0;i<n;i++){
-            pthread_join(reader[i], NULL);
-        }
-        pthread_join(writer, NULL);
-
-        sem_destroy(&wrt);
-        sem_destroy(&rd);
-
-        
-
-
-    }
-    else{
         printf("n shound be n>0 and n<15\n");
 
+        }
+    }
+    else
+    {
+    printf("invalid input\n");
     }
 }
-
-
-
-
-
 
