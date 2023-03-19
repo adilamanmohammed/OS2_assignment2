@@ -49,8 +49,10 @@ void *rdfunc(void *arg){
             
 
         sem_wait(&rd);
+
         rcount++;
-        if(rcount == 1){
+        if(rcount == 1)
+        {
             sem_wait(&wrt);
 
         }
@@ -130,5 +132,5 @@ int main(int argc, char* argv[])
     {
     printf("invalid input\n");
     }
+    return 0;
 }
-
