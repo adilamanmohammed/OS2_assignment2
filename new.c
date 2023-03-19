@@ -1,4 +1,3 @@
-
 #include<stdio.h>
 #include<semaphore.h>
 #include<stdlib.h>
@@ -12,31 +11,33 @@ int wflag=0;
 sem_t mutex,wrt;
 
 
-void RnS()
+void* RS()
 {
     int i;
     for(i=0;i<250000000;i++)
     {
         i=i;
     }
-    return 0;
 }
 
-void* readerfunc()
+void* readerfunc(void* arg)
 {
-    int i=0;
+    int *x=(int *) arg;
+    int y=*x;
     /*for(i=0;i<Readmax;i++)
     {
         sem_wait(&mutex);
-        if(flag==1)
+        if(wflag==1)
     }
     */
-    printf("reader okay\n");
+    printf("readerfunc okay : %d\n",y);
 }
 
-void* writerfunc()
+void* writerfunc(void* arg)
 {
-    
+    int *x=(int *) arg;
+    int y=*x;
+    printf("writerfunc okay : %d\n",y);
 }
 
 
@@ -47,6 +48,7 @@ int main(int argc, char* argv[])
 {
     int n=atoi(argv[1]),i;
     int k=n/2;
+    int a[14];
 
     printf("c=%d n=%d\n",argc,n);
 
@@ -65,16 +67,18 @@ int main(int argc, char* argv[])
             
             for(i=0;i<k;i++)
             {
-                pthread_create(&R[i],NULL,readerfunc,NULL);
+                a[i]=i;
+                pthread_create(&R[i],NULL,readerfunc,(void *) &a[i]);
             }
 
-
+            
             pthread_create(&writer,NULL,writerfunc,NULL);
 
-
+            sleep(4);
             for(i=k;i<n;i++)
             {
-                pthread_create(&R[i],NULL,readerfunc,NULL);
+                a[i]=i;
+                pthread_create(&R[i],NULL,readerfunc,(void *) &a[i]);
             }
             
 
