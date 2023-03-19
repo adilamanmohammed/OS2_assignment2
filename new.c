@@ -33,7 +33,7 @@ void *wrtfunc(void *arg){
         sem_post(&wrt);
 
     }
-    printf("counter increased by %d\n", SC);
+    printf("counter = %d increased by writer\n", SC);
     printf("Writer done writing\n");
 
     return NULL;
@@ -150,5 +150,3 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
-
-
