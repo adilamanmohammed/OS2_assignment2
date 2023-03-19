@@ -19,7 +19,7 @@ for(i = 0; i < 250000000; i++) i=i;
 
 void *wrtfunc(void *arg){
     int i=0;
-    while(i<2500){
+    while(i<25000){
 
         sem_wait(&wrt);
         wflag = 1;
@@ -45,7 +45,7 @@ void *rdfunc(void *arg){
     int j=0;
     int x = *((int *) arg);
 
-    while(j<25000){
+    while(j<250000){
             
 
         sem_wait(&rd);
@@ -150,3 +150,5 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
+
+
