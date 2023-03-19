@@ -60,7 +60,7 @@ void *rdfunc(void *arg){
 
         sem_wait(&rd);
         if(wflag == 1){
-            printf("Error, writer is in it's critical section");
+            printf("Error, writer in critical section");
         }
         sem_post(&rd);
         
@@ -68,10 +68,13 @@ void *rdfunc(void *arg){
         
 
         sem_wait(&rd);
+
         rcount--;
-        if(rcount == 0){
+        if(rcount == 0)
+        {
             sem_post(&wrt);
         }
+
         j++;
         sem_post(&rd);
 
@@ -92,20 +95,29 @@ int main(int argc, char* argv[])
     if(argc==2)
     {
         if(n >= 1 && n <= 14)
-        {
-                    pthread_t reader[n], writer;
-                    sem_init(&wrt, 0, 1);
-                    sem_init(&rd, 0, 1);
+        {           
                     int k,i;
                     k = (int)(n/2);
+
+                    pthread_t reader[n], writer;
+
+                    sem_init(&wrt, 0, 1);
+                    sem_init(&rd, 0, 1); 
+
+                    //creating 0 to k reader threads
                     for(i = 0; i < k; i++)
                         {
                             int *x = malloc(sizeof(int));
                             *x = i;
                             pthread_create(&reader[i], NULL , rdfunc, x);
                         }
-                    /* Create the writer thread */
+
+
+                    //creating writer threads
+
                     pthread_create(&writer, NULL , wrtfunc, NULL);
+
+                    //creating k to n reader threads
                     for(i = k ; i < n ; i++)
                         {
                             int *x = malloc(sizeof(int));
@@ -113,12 +125,16 @@ int main(int argc, char* argv[])
                             pthread_create(&reader[i], NULL , rdfunc, x);
                         } 
 
+                    //joining 0 to n reader threads
                     for(i=0;i<n;i++)
                         {
                             pthread_join(reader[i], NULL);
                         }
+                    
+                    //joining writer thread
                         pthread_join(writer, NULL);
 
+                    //killing the semaphores
                         sem_destroy(&wrt);
                         sem_destroy(&rd);
         }
