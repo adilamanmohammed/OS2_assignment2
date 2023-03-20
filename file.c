@@ -1,109 +1,184 @@
+/*
+Name : Adil Aman Mohammed
+description : the following code is the implementation of readers and writers problem where the writer is going to update shared counter for 25000 and
+                reader is going to loop for 250M times (relax and spend).
+*/
+
+//required libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
 
-sem_t writer_mutex, reader_mutex;
-int sharedCounterValue=0;
-int flag = 0, readCnt = 0;
+//global declaration of variables
+int SC=0;  //shared counter 
+int wflag = 0, rcount = 0;  //writer flag and reader counter
 
-void *writerFunction(void *arg){
-    int w;
-    for(w = 0; w < 2500; w++){
-        sem_wait(&writer_mutex);
-        flag = 1;
-        sharedCounterValue++;
-        //printf("Counter Value increased by writer = %d\n", sharedCounterValue);
-        flag = 0;
-        sem_post(&writer_mutex);
-    }
-    printf("Writer done writing\n");
+sem_t wrt,rd;  //writer and reader semaphore declaration
 
-    return NULL;
-    
-    
+//relax and spend function declaration
+void relaxandspendtime()
+{
+int i;
+for(i = 0; i < 250000000; i++) i=i;
 }
 
-void *readerFunction(void *arg){
-    int id = *((int *) arg);
-    free(arg);
 
-    for(int j = 0; j < 250000000; j++ ){
-            
+//writer function declaration
+void *wrtfunc(void *arg){
+    int i=0;
 
-        sem_wait(&reader_mutex);
-        readCnt++;
-        if(readCnt == 1){
-            sem_wait(&writer_mutex);
-
-        }
-        sem_post(&reader_mutex);
-
-        sem_wait(&reader_mutex);
-        if(flag == 1){
-            printf("Error, writer is in it's critical section");
-        }
-        sem_post(&reader_mutex);
+    //while loop for looping 25k times
+    while(i<25000){
         
-        sharedCounterValue = sharedCounterValue;
+        //entry section
+        //writer semaphore locked 
+        sem_wait(&wrt);
 
+        //giving a signal that writer is in critical section 
+        wflag = 1;
 
-        //printf("Reader %d reading %d\n", id+1, sharedCounterValue);
+        //critical section
+        SC++;
+        
+        //exit section 
+        //giving a signal that writer is out of critical section
+        wflag = 0;
+        
+        //writer semaphore unlocked
+        sem_post(&wrt);
 
-        sem_wait(&reader_mutex);
-        readCnt--;
-        if(readCnt == 0){
-            sem_post(&writer_mutex);
-        }
-        sem_post(&reader_mutex);
+        //remainder section
+        i++;
 
     }
-    printf("Reader %d Done reading\n", id+1);
 
+    //printing the counter value and writer is done
+    printf("Writer done writing : ");
+    printf("counter = %d increased by writer\n", SC);
 
+    return NULL;
+    
+    
+}
+
+void *rdfunc(void *value){
+
+    //entery section
+    //initializing j
+    int j=0;
+    int x = *((int *) value); //converting pointer value to integer 
+        
+        //if reader enters writers giving an error
+        if(wflag == 1)
+        {
+            printf("Error, writer in critical section");
+        }
+       
+        //critical section
+       for(j=0;j<250000000;j++)
+       {
+        sem_wait(&rd);
+
+        rcount++;
+
+        if(rcount == 1)
+        {
+            sem_wait(&wrt);
+
+        }
+        sem_post(&rd);
+
+        //relaxandspendtime();
+
+        sem_wait(&rd);
+
+        rcount--;
+
+        if(rcount == 0)
+        {
+            sem_post(&wrt);
+        }
+
+        sem_post(&rd);
+       }
+    
+    //exit section
+    printf("Reader %d Done reading\n", x+1);
+
+    //remainder section
     return NULL;
 
 }
 
-
-int main(int agrc, char* argv[]){
+//main function declaration 
+int main(int argc, char* argv[])
+{
+    //variable declaration
     int n;
     n = atoi(argv[1]);
-    if(n >= 1 && n <= 14){
-        pthread_t readerThreads[n], writer;
-        sem_init(&writer_mutex, 0, 1);
-        sem_init(&reader_mutex, 0, 1);
-        int k,i;
-        k = (int)(n/2);
-        for(i = 0; i < k; i++)
-        {
-            int *id = malloc(sizeof(int));
-            *id = i;
-            pthread_create(&readerThreads[i], NULL , readerFunction, id);
+
+    //loop to check that if given number of arguments in comment line is only 1 value
+    if(argc==2)
+    {   
+        //loop to check that if the n value is in the range of 1 to 14
+        if(n >= 1 && n <= 14)
+        {           
+            //variable declaration
+                    int k,i;
+                    k = (int)(n/2);
+
+                    //declaration of reader and writer threads
+                    pthread_t reader[n], writer;
+
+                    //initialization of writer and reader semaphore 
+                    sem_init(&wrt, 0, 1);
+                    sem_init(&rd, 0, 1); 
+
+                    //creating 0 to k reader threads
+                    for(i = 0; i < k; i++)
+                        {
+                            int *x = malloc(sizeof(int));
+                            *x = i;
+                            pthread_create(&reader[i], NULL , rdfunc, x);
+                        }
+
+
+                    //creating writer threads
+                    pthread_create(&writer, NULL , wrtfunc, NULL);
+
+                    //creating k to n reader threads
+                    for(i = k ; i < n ; i++)
+                        {
+                            int *x = malloc(sizeof(int));
+                            *x = i;
+                            pthread_create(&reader[i], NULL , rdfunc, x);
+                        } 
+
+                    //joining 0 to n reader threads
+                    for(i=0;i<n;i++)
+                        {
+                            pthread_join(reader[i], NULL);
+                        }
+                    
+                    //joining writer thread
+                        pthread_join(writer, NULL);
+
+                    //killing the semaphores
+                        sem_destroy(&wrt);
+                        sem_destroy(&rd);
         }
-        /* Create the writer thread */
-        pthread_create(&writer, NULL , writerFunction, NULL);
-        for(i = k ; i < n ; i++)
+        else
         {
-            int *id = malloc(sizeof(int));
-            *id = i;
-            pthread_create(&readerThreads[i], NULL , readerFunction, id);
-        } 
+        //printing message if condition not satisfied
+        printf("n shound be n>0 and n<15\n");
 
-        for(i=0;i<n;i++){
-            pthread_join(readerThreads[i], NULL);
         }
-        pthread_join(writer, NULL);
-
-        sem_destroy(&writer_mutex);
-        sem_destroy(&reader_mutex);
-
-        
-
-
     }
-    else{
-        printf("Number of Threads entered %d is not in the range of 1 and 14\nPlease try again with a number that falls within the range", n);
-
+    else
+    {
+    //printing message if arguments in comment line are more than 1
+    printf("invalid input\n");
     }
+    return 0;
 }
