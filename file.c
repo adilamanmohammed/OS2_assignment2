@@ -2,6 +2,7 @@
 Name : Adil Aman Mohammed
 description : the following code is the implementation of readers and writers problem where the writer is going to update shared counter for 25000 and
                 reader is going to loop for 250M times (relax and spend).
+References : Lecture 6 ppt 
 */
 
 //required libraries
@@ -13,6 +14,7 @@ description : the following code is the implementation of readers and writers pr
 //global declaration of variables
 int SC=0;  //shared counter 
 int wflag = 0, rcount = 0;  //writer flag and reader counter
+
 
 sem_t wrt,rd;  //writer and reader semaphore declaration
 
@@ -89,6 +91,7 @@ void *rdfunc(void *value){
         }
         sem_post(&rd);
 
+        SC=SC;
         //relaxandspendtime();
 
         sem_wait(&rd);
