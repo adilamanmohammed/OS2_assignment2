@@ -19,11 +19,11 @@ int wflag = 0, rcount = 0;  //writer flag and reader counter
 sem_t wrt,rd;  //writer and reader semaphore declaration
 
 //relax and spend function declaration
-void relaxandspendtime()
+/*void relaxandspendtime()
 {
 int i;
 for(i = 0; i < 250000000; i++) i=i;
-}
+}*/
 
 
 //writer function declaration
@@ -68,7 +68,7 @@ void *rdfunc(void *value){
 
     //entery section
     //initializing j
-    int j=0;
+    int j=0,temp=0;
     int x = *((int *) value); //converting pointer value to integer 
         
         //if reader enters writers giving an error
@@ -78,7 +78,7 @@ void *rdfunc(void *value){
         }
        
         //critical section
-       for(j=0;j<250000000;j++)
+       for(j=0;j<25000;j++)
        {
         sem_wait(&rd);
 
@@ -91,7 +91,7 @@ void *rdfunc(void *value){
         }
         sem_post(&rd);
 
-        SC=SC;
+        temp=SC; //acessing Shared counter for every loop
         //relaxandspendtime();
 
         sem_wait(&rd);
@@ -107,7 +107,7 @@ void *rdfunc(void *value){
        }
     
     //exit section
-    printf("Reader %d Done reading\n", x+1);
+    printf("Reader %d Done reading and last value read : %d\n", x+1,temp);
 
     //remainder section
     return NULL;
